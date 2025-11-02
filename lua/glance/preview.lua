@@ -164,7 +164,12 @@ function Preview:restore_win_opts()
   end
 end
 
-function Preview:close()
+---@param keep_buf boolean|nil
+function Preview:close(keep_buf)
+  if keep_buf == nil then
+    keep_buf = false
+  end
+
   self:on_detach_buffer((self.current_location or {}).bufnr)
   self:restore_win_opts()
 
@@ -180,7 +185,9 @@ function Preview:close()
       then
         vim.lsp.inlay_hint(bufnr, false)
       end
-      vim.api.nvim_buf_delete(bufnr, { force = true })
+      if not keep_buf then
+        vim.api.nvim_buf_delete(bufnr, { force = true })
+      end
     else
       clear_hl(bufnr)
     end

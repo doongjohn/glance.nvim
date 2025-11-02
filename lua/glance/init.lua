@@ -560,7 +560,7 @@ function Glance:jump(opts)
     return self.list:toggle_fold(current_item)
   end
 
-  self:close()
+  self:close(true)
 
   glance.push_tagstack()
 
@@ -572,11 +572,9 @@ function Glance:jump(opts)
     end
   end
 
-  if vim.fn.buflisted(current_item.bufnr) == 1 then
-    vim.cmd(('buffer %s'):format(current_item.bufnr))
-  else
-    vim.cmd(('edit %s'):format(vim.fn.fnameescape(current_item.filename)))
-  end
+  local bufnr = vim.fn.bufnr(current_item.filename)
+  vim.api.nvim_set_option_value('buflisted', true, { buf = bufnr })
+  vim.cmd(('buffer %s'):format(bufnr))
 
   vim.api.nvim_win_set_cursor(
     0,
@@ -610,7 +608,12 @@ function Glance:update_preview(item)
   end
 end
 
-function Glance:close()
+---@param keep_preview_buf boolean|nil
+function Glance:close(keep_preview_buf)
+  if keep_preview_buf == nil then
+    keep_preview_buf = false
+  end
+
   local hooks = config.options.hooks or {}
 
   if type(hooks.before_close) == 'function' then
@@ -628,7 +631,7 @@ function Glance:close()
   vim.api.nvim_del_augroup_by_name('Glance')
 
   self.list:close()
-  self.preview:close()
+  self.preview:close(keep_preview_buf)
 
   if type(hooks.after_close) == 'function' then
     vim.schedule(hooks.after_close)
