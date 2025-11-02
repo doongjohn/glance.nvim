@@ -24,10 +24,14 @@ function Winbar:render(section_values)
     return
   end
 
+  local winbar_escape = function(s)
+    return s:gsub("%%", "%%%%"):gsub("#", "##")
+  end
+
   local winbar_value = ''
   for section, value in pairs(section_values) do
     winbar_value =
-      string.format('%s%%#%s# %s', winbar_value, self.sections[section], value)
+      string.format('%s%%#%s# %s', winbar_value, self.sections[section], winbar_escape(value))
   end
 
   self.last_values = section_values
